@@ -1,1 +1,0 @@
-# SmartTalent-grupo6
