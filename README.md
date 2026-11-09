@@ -1,42 +1,164 @@
 ## Sobre o Projeto
-Este repositório contém o pipeline de engenharia e tratamento de dados desenvolvido para um case de manufatura. O projeto utiliza um dataset público extraído do Kaggle (*Manufacturing Defect Dataset*), com o objetivo de analisar a eficiência operacional da linha de montagem, validar a integridade física dos registros e investigar o impacto de métricas de manutenção e custos na taxa de defeitos industriais.
 
-## Como Rodar o Projeto do Zero
+Este repositório contém o projeto de análise de dados desenvolvido em grupo durante o programa **Smart Talent**, uma iniciativa do Instituto Caldeira em parceria com a John Deere.
+
+O objetivo do projeto é analisar indicadores operacionais de manufatura, investigando possíveis associações entre condições de produção, manutenção, custos, eficiência energética e níveis de defeitos.
+
+A análise busca responder à seguinte pergunta de negócio:
+
+**Quais condições operacionais estão associadas a maiores níveis de defeitos na manufatura e como se relacionam com custos e eficiência?**
+
+Para desenvolver o projeto, foi utilizado um dataset público e sintético disponibilizado no Kaggle. Portanto, os resultados representam exclusivamente os dados desse conjunto e não informações reais da operação industrial da John Deere.
+
+## Dataset
+
+- **Fonte:** [Kaggle — Predicting Manufacturing Defects Dataset](https://www.kaggle.com/datasets/rabieelkharoua/predicting-manufacturing-defects-dataset)
+- **Total de registros:** 3.240
+- **Total de colunas originais:** 17
+- **Formato original:** CSV
+
+Os dados contêm informações relacionadas à produção, manutenção, consumo de energia, custos, qualidade e ocorrência de defeitos.
+
+## Tecnologias e Ferramentas
+
+- **Databricks:** ambiente de desenvolvimento e processamento dos dados.
+- **Python:** linguagem utilizada no desenvolvimento do pipeline.
+- **PySpark:** processamento, transformação e análise dos dados.
+- **Spark SQL:** acesso e manipulação das tabelas no Databricks.
+- **Matplotlib:** criação das visualizações.
+- **Git e GitHub:** versionamento e compartilhamento do projeto.
+
+## Estrutura do Repositório
+
+```text
+SmartTalent-grupo6/
+│
+├── src/
+│   └── pipeline.py
+│
+├── pipeline
+├── README.md
+├── requirements.txt
+└── .gitignore
+```
+
+- `src/pipeline.py`: contém as funções responsáveis pelo carregamento, validação, transformação e análise dos dados, além da geração dos gráficos.
+- `pipeline`: notebook Databricks utilizado para executar o pipeline, documentar as etapas e apresentar os resultados.
+- `README.md`: documentação do projeto.
+- `requirements.txt`: arquivo de referência das dependências Python.
+- `.gitignore`: define os arquivos e diretórios que não devem ser enviados ao repositório.
+
+## Metodologia e Tratamento dos Dados
+
+O processamento foi organizado em etapas, seguindo uma abordagem de análise e transformação dos dados.
+
+### 1. Carregamento dos dados
+
+Os dados são carregados diretamente da tabela disponibilizada no Databricks:
+
+`workspace.default.manufacturing_defect_dataset`
+
+### 2. Verificação da qualidade dos dados
+
+Foram realizadas verificações para identificar possíveis problemas de qualidade, incluindo:
+
+- Valores nulos por coluna;
+- Registros duplicados;
+- Horas de manutenção negativas;
+- Volume de produção menor ou igual a zero;
+- Custos de produção negativos;
+- Percentuais de inatividade fora do intervalo de 0 a 100;
+- Valores de eficiência energética menores ou iguais a zero;
+- Classificações de defeitos diferentes de 0 ou 1.
+
+As verificações não identificaram inconsistências nas regras avaliadas. Dessa forma, não foi necessária a remoção ou correção de registros.
+
+Considerando a natureza sintética e a homogeneidade do dataset, as verificações realizadas não identificaram inconsistências que justificassem a remoção ou correção de registros. Dessa forma, optou-se por preservar a totalidade dos dados. Os valores atípicos identificados pelo método IQR também foram mantidos, sendo sinalizados por uma coluna indicadora para permitir análises específicas.
+
+### 3. Criação de indicadores derivados
+
+Foram criadas duas métricas para aprofundar a análise:
+
+- **UnitCost:** custo de produção dividido pelo volume produzido, permitindo comparar o custo médio por unidade.
+- **EnergyPerUnit:** consumo de energia dividido pelo volume produzido, permitindo avaliar o consumo energético por unidade produzida.
+
+### 4. Identificação de outliers
+
+Foi utilizado o método do Intervalo Interquartil (IQR), com fator 1,5, para identificar valores atípicos na métrica `UnitCost`.
+
+Foram identificados 284 registros classificados como outliers, aproximadamente 8,77% da base analisada.
+
+Esses registros foram preservados, sem exclusão automática, e identificados por meio da coluna `IsUnitCostOutlier`.
+
+A decisão permite manter informações potencialmente relevantes para investigações sobre situações operacionais atípicas.
+
+### 5. Análise comparativa
+
+Os registros foram agrupados conforme a classificação `DefectStatus`:
+
+- `0`: baixo nível de defeitos;
+- `1`: alto nível de defeitos.
+
+Foram calculadas médias de indicadores relacionados à taxa de defeitos, qualidade, manutenção, volume de produção, custo unitário e consumo de energia por unidade.
+
+### 6. Visualizações
+
+Foram desenvolvidos dois gráficos para responder à pergunta de negócio:
+
+- Comparação da taxa média de defeitos entre os grupos.
+- Comparação das horas médias de manutenção entre os grupos.
+
+## Principais Resultados
+
+A análise identificou diferenças entre os grupos classificados com baixo e alto nível de defeitos.
+
+| Indicador | Baixo nível (0) | Alto nível (1) |
+|---|---:|---:|
+| Total de registros | 517 | 2.723 |
+| Taxa média de defeitos | 2,01 | 2,89 |
+| Qualidade média | 85,44 | 79,13 |
+| Horas médias de manutenção | 6,79 | 12,37 |
+| Volume médio de produção | 470,87 | 563,27 |
+| Custo unitário médio | 36,28 | 31,26 |
+| Energia por unidade | 8,72 | 7,59 |
+
+Os registros classificados com alto nível de defeitos apresentaram maior taxa média de defeitos, menor pontuação média de qualidade e maior quantidade média de horas de manutenção.
+
+Também foi observado que esse grupo apresentou maior volume médio de produção, menor custo unitário médio e menor consumo de energia por unidade.
+
+Esses resultados indicam associações entre determinados indicadores operacionais e os níveis de defeitos. Entretanto, por se tratar de uma análise descritiva de dados sintéticos, não é possível estabelecer relações de causa e efeito.
+
+## Como Executar o Projeto
+
+A execução do projeto é realizada no ambiente Databricks.
 
 ### Pré-requisitos
-- Python 3.10 ou superior
-- Git instalado
 
-### Passo a Passo
-1. **Clonar o repositório:**
-   ```bash
-   git clone <URL_DO_SEU_REPOSITORIO>
-   cd <NOME_DA_PASTA_DO_PROJETO>
-   ```
+- Acesso a um workspace Databricks.
+- Repositório conectado ao Databricks por meio de Git Folder.
+- Tabela `workspace.default.manufacturing_defect_dataset` disponível no workspace.
 
-2. **Criar e ativar o ambiente virtual:**
-    ```bash
-    Linux/macOS:
-    python3 -m venv .venv
-    source .venv/bin/activate
-    
-    Windows (PowerShell):
-    python -m venv .venv
-    .\.venv\Scripts\Activate.ps1
-    ```
+### Passo a passo
 
-3. **Instalar as dependências:**
-    ```bash
-    pip install -r requirements.txt
-    ```
+1. Acesse o Databricks.
+2. Abra o Git Folder do repositório `SmartTalent-grupo6`.
+3. Selecione a branch `dev`.
+4. Abra o notebook `pipeline`.
+5. Execute a célula responsável pela importação do pipeline:
 
-4. **Executar o pipeline:**
-    ```bash
-    python src/pipeline.py
-    ```
+```python
+from src.pipeline import executar_pipeline
+```
 
-## Regras de Negócio e Tratamento de Dados 
-O pipeline executa validações de qualidade e integridade analítica sobre o dataset:
-1. Validação de Limites Físicos: Verificação e remoção de inconformidades operacionais impossíveis (ex: taxas de inatividade > 100% ou eficiência energética <= 0).
-2. Normalização de Escala (Custo Unitário): Criação da métrica UnitCost (ProductionCost / ProductionVolume) para normalizar o investimento financeiro e permitir a comparação justa entre lotes de tamanhos heterogêneos.
-3. Detecção e Remoção Defensiva de Outliers (IQR): Aplicação do método estatístico do Intervalo Interquartil (IQR) com fator 1.5 sobre a métrica de custo unitário, identificando e filtrando 284 lotes atípicos. Essa remoção blinda as análises futuras contra ruídos severos (ex: falhas catastróficas e retrabalhos atípicos), focando a base na operação padrão da fábrica.
+6. Execute o pipeline utilizando a tabela de origem:
+
+```python
+resultados = executar_pipeline(
+    spark,
+    "workspace.default.manufacturing_defect_dataset"
+)
+```
+
+7. Ao final da execução, serão apresentados os resultados das verificações de qualidade, a análise de outliers, a tabela resumida e os gráficos.
+
+O notebook também apresenta as etapas individuais da análise, com explicações, códigos e interpretações dos resultados.
