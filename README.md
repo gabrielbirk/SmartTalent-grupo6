@@ -71,9 +71,9 @@ Foram realizadas verificações para identificar possíveis problemas de qualida
 - Valores de eficiência energética menores ou iguais a zero;
 - Classificações de defeitos diferentes de 0 ou 1.
 
-As verificações não identificaram inconsistências nas regras avaliadas. Dessa forma, não foi necessária a remoção ou correção de registros.
+As verificações realizadas não identificaram inconsistências nas regras de qualidade avaliadas. Considerando a natureza sintética e a homogeneidade do dataset, optou-se por preservar a totalidade dos registros, sem remoções ou correções.
 
-Considerando a natureza sintética e a homogeneidade do dataset, as verificações realizadas não identificaram inconsistências que justificassem a remoção ou correção de registros. Dessa forma, optou-se por preservar a totalidade dos dados. Os valores atípicos identificados pelo método IQR também foram mantidos, sendo sinalizados por uma coluna indicadora para permitir análises específicas.
+Os valores atípicos identificados pelo método IQR também foram mantidos e sinalizados por uma coluna indicadora, permitindo análises específicas sem perda de informações.
 
 ### 3. Criação de indicadores derivados
 
@@ -101,12 +101,15 @@ Os registros foram agrupados conforme a classificação `DefectStatus`:
 
 Foram calculadas médias de indicadores relacionados à taxa de defeitos, qualidade, manutenção, volume de produção, custo unitário e consumo de energia por unidade.
 
-### 6. Visualizações
+### 6. Visualizações e análises exploratórias
 
-Foram desenvolvidos dois gráficos para responder à pergunta de negócio:
+Foram desenvolvidas visualizações e análises para investigar relações entre os indicadores operacionais, de qualidade, custos e eficiência energética, organizadas em três frentes:
 
-- Comparação da taxa média de defeitos entre os grupos.
-- Comparação das horas médias de manutenção entre os grupos.
+- **Frente 1 — Qualidade e defeitos:** comparação da taxa média de defeitos e das horas médias de manutenção entre os grupos classificados com baixo e alto nível de defeitos.
+- **Frente 2 — Eficiência operacional:** análise da relação entre volume de produção, custo total, custo unitário e consumo de energia por unidade, incluindo comparações por faixas de volume de produção.
+- **Frente 3 — Custos e energia:** investigação da relação entre custo unitário e consumo de energia por unidade, além da comparação entre custo total de produção e consumo total de energia.
+
+Também foi utilizada uma matriz de correlação de Pearson para investigar associações lineares entre os indicadores selecionados.
 
 ## Principais Resultados
 
@@ -128,6 +131,18 @@ Também foi observado que esse grupo apresentou maior volume médio de produçã
 
 Esses resultados indicam associações entre determinados indicadores operacionais e os níveis de defeitos. Entretanto, por se tratar de uma análise descritiva de dados sintéticos, não é possível estabelecer relações de causa e efeito.
 
+### Eficiência operacional, custos e energia
+
+Na análise por faixas de volume de produção, observou-se que o custo total médio permaneceu relativamente estável, enquanto o custo unitário médio diminuiu de 65,68 na faixa de menor volume para 14,11 na faixa de maior volume.
+
+Comportamento semelhante foi observado no consumo de energia: o consumo total médio permaneceu relativamente estável, enquanto o consumo de energia por unidade diminuiu de 16,05 para 3,32 entre as mesmas faixas.
+
+Essas reduções nos indicadores unitários devem ser interpretadas com cautela, pois tanto o custo unitário quanto o consumo de energia por unidade são calculados utilizando o volume de produção como denominador. Portanto, os resultados não comprovam, isoladamente, ganhos reais de eficiência ou economia de escala.
+
+Na matriz de correlação de Pearson, foram identificadas associações negativas entre volume de produção e custo unitário (-0,726), e entre volume de produção e consumo de energia por unidade (-0,708). Também foi observada uma associação positiva entre custo unitário e consumo de energia por unidade (0,724).
+
+Entretanto, a correlação entre custo total de produção e consumo total de energia foi praticamente inexistente (-0,007). Da mesma forma, não foram identificadas correlações lineares expressivas entre a taxa de defeitos (DefectRate) e os indicadores selecionados.
+
 ## Como Executar o Projeto
 
 A execução do projeto é realizada no ambiente Databricks.
@@ -136,21 +151,30 @@ A execução do projeto é realizada no ambiente Databricks.
 
 - Acesso a um workspace Databricks.
 - Repositório conectado ao Databricks por meio de Git Folder.
-- Tabela `workspace.default.manufacturing_defect_dataset` disponível no workspace.
+- Arquivo CSV original do dataset disponível para carregamento.
 
 ### Passo a passo
 
-1. Acesse o Databricks.
-2. Abra o Git Folder do repositório `SmartTalent-grupo6`.
-3. Selecione a branch `dev`.
-4. Abra o notebook `pipeline`.
-5. Execute a célula responsável pela importação do pipeline:
+**1. Preparação dos dados**
+
+1. Baixe o arquivo CSV do dataset na plataforma Kaggle.
+2. Acesse o workspace Databricks.
+3. No menu, selecione a opção **Data Ingestion**.
+4. Faça o upload do arquivo CSV e configure a importação para disponibilizar os dados em uma tabela.
+5. Utilize o nome de tabela esperado pelo projeto: `workspace.default.manufacturing_defect_dataset`.
+
+**2. Execução do projeto**
+
+1. Abra o Git Folder do repositório `SmartTalent-grupo6`.
+2. Selecione a branch `dev`.
+3. Abra o notebook `pipeline`.
+4. Execute a célula responsável pela importação do pipeline:
 
 ```python
 from src.pipeline import executar_pipeline
 ```
 
-6. Execute o pipeline utilizando a tabela de origem:
+5. Execute o pipeline utilizando a tabela de origem:
 
 ```python
 resultados = executar_pipeline(
@@ -159,6 +183,6 @@ resultados = executar_pipeline(
 )
 ```
 
-7. Ao final da execução, serão apresentados os resultados das verificações de qualidade, a análise de outliers, a tabela resumida e os gráficos.
+6. Ao final da execução, serão apresentados os resultados das verificações de qualidade, a análise de outliers, a tabela resumida e os gráficos.
 
 O notebook também apresenta as etapas individuais da análise, com explicações, códigos e interpretações dos resultados.
