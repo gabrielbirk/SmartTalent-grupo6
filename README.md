@@ -36,14 +36,18 @@ SmartTalent-grupo6/
 ├── src/
 │   └── pipeline.py
 │
-├── pipeline
+├── pipeline.ipynb
+├── modelo_baseline.ipynb
+├── modelo.joblib
 ├── README.md
 ├── requirements.txt
 └── .gitignore
 ```
 
 - `src/pipeline.py`: contém as funções responsáveis pelo carregamento, validação, transformação e análise dos dados, além da geração dos gráficos.
-- `pipeline`: notebook Databricks utilizado para executar o pipeline, documentar as etapas e apresentar os resultados.
+- `pipeline.ipynb`: notebook Databricks utilizado para executar o pipeline, documentar as etapas e apresentar os resultados.
+- `modelo_baseline.ipynb`: treinamento e avaliação do modelo de Machine Learning.
+- `modelo.joblib`: modelo treinado e salvo para reutilização.
 - `README.md`: documentação do projeto.
 - `requirements.txt`: arquivo de referência das dependências Python.
 - `.gitignore`: define os arquivos e diretórios que não devem ser enviados ao repositório.
@@ -142,6 +146,25 @@ Essas reduções nos indicadores unitários devem ser interpretadas com cautela,
 Na matriz de correlação de Pearson, foram identificadas associações negativas entre volume de produção e custo unitário (-0,726), e entre volume de produção e consumo de energia por unidade (-0,708). Também foi observada uma associação positiva entre custo unitário e consumo de energia por unidade (0,724).
 
 Entretanto, a correlação entre custo total de produção e consumo total de energia foi praticamente inexistente (-0,007). Da mesma forma, não foram identificadas correlações lineares expressivas entre a taxa de defeitos (DefectRate) e os indicadores selecionados.
+
+### Modelo baseline de Machine Learning
+
+Foi desenvolvido um modelo inicial de classificação utilizando **Random Forest**, com o objetivo de identificar registros classificados com alto nível de defeitos (`DefectStatus = 1`).
+
+**Configuração do experimento:**
+- Algoritmo: Random Forest (`n_estimators=100`).
+- Variável-alvo: `DefectStatus`.
+- Variáveis preditoras: 14 indicadores operacionais, de produção, qualidade, manutenção e energia.
+- Divisão dos dados: 80% para treinamento e 20% para teste, com estratificação das classes.
+
+**Resultados no conjunto de teste:**
+- Precisão da classe 1: **84,8%**.
+- Recall da classe 1: **98,5%**.
+- Acurácia: **84,0%**.
+
+A precisão indica que, entre os registros previstos como defeituosos, 84,8% realmente pertenciam à classe 1. O recall indica que o modelo identificou 98,5% dos registros que realmente pertenciam a essa classe.
+
+**Limitações:** o modelo ainda apresenta dificuldade para identificar a classe 0, reconhecendo corretamente apenas 7 dos 103 registros dessa classe no teste. Além disso, o conjunto de dados não possui identificadores de máquina, linha de produção ou período, impossibilitando a separação por grupos recomendada para evitar vazamento de dados. Por isso, foi utilizada uma divisão aleatória estratificada, e os resultados devem ser considerados exploratórios, não uma validação definitiva para uso industrial.
 
 ## Como Executar o Projeto
 
